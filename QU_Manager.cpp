@@ -50,6 +50,7 @@ RC Query(char * sql, SelResult * res) {
 * 第二组表示查询涉及的表
 * 第三组表示查询条件
 * 最后一个参数res用于返回查询结果集
+* 查询优化：优化查询过程，当查询涉及多个表时，设计高效的查询过程
 */
 
 RC Select(int nSelAttrs, RelAttr **selAttrs, int nRelations, char **relations, int nConditions, Condition *conditions, SelResult * res)
