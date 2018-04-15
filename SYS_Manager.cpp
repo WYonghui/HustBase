@@ -593,7 +593,7 @@ RC Insert(char *relName, int nValues, Value * values)
 RC Delete(char *relName, int nConditions, Condition *conditions)
 {
 	RC rc;
-	RID *rid;
+	//RID *rid = NULL;
 	RM_FileHandle *tab_Handle, *col_Handle, *data_Handle;
 	RM_FileScan *fileScan;
 	RM_Record *tab_rec, *col_rec, *data_rec;
@@ -639,7 +639,7 @@ RC Delete(char *relName, int nConditions, Condition *conditions)
 		free(fileScan);
 
 		//打开系统列文件，得到对应属性的长度和偏移
-		SysColumns *tmp, *column;
+		//SysColumns *tmp, *column;
 		col_Handle = (RM_FileHandle *)malloc(sizeof(RM_FileHandle));
 
 		rc = RM_OpenFile("SYSCOLUMNS", col_Handle);
@@ -793,7 +793,7 @@ RC Delete(char *relName, int nConditions, Condition *conditions)
 RC Update(char *relName, char *attrName, Value *value, int nConditions, Condition *conditions)
 {
 	RC rc;
-	RID *rid;
+	//RID *rid = NULL;
 	RM_FileHandle *tab_Handle, *col_Handle, *data_Handle;
 	RM_FileScan *fileScan;
 	RM_Record *tab_rec, *col_rec, *data_rec;
@@ -839,7 +839,7 @@ RC Update(char *relName, char *attrName, Value *value, int nConditions, Conditio
 		free(fileScan);
 
 		//打开系统列文件，得到对应属性的长度和偏移
-		SysColumns *tmp, *column;
+//		SysColumns *tmp, *column;
 		col_Handle = (RM_FileHandle *)malloc(sizeof(RM_FileHandle));
 
 		rc = RM_OpenFile("SYSCOLUMNS", col_Handle);
@@ -997,8 +997,8 @@ bool hasTable(char * tableName)
 	CFile tmp;
 	RM_FileHandle *tab_Handle;
 	RC rc;
-	RM_FileScan *FileScan;
-	RM_Record *tab_rec;
+	RM_FileScan *FileScan = NULL;
+	RM_Record *tab_rec = NULL;
 
 	//将系统表和系统列中对应表的相关记录删除
 	tab_Handle = (RM_FileHandle *)malloc(sizeof(RM_FileHandle));
@@ -1028,8 +1028,8 @@ bool hasColumn(char * tableName, char * columnName)
 	CFile tmp;
 	RM_FileHandle *col_Handle;
 	RC rc;
-	RM_FileScan *FileScan;
-	RM_Record *col_rec;
+	RM_FileScan *FileScan = NULL;
+	RM_Record *col_rec = NULL;
 
 	//打开系统表，系统列文件
 	col_Handle = (RM_FileHandle *)malloc(sizeof(RM_FileHandle));
@@ -1065,8 +1065,8 @@ bool hasIndex(char * tableName, char * columnName)
 	CFile tmp;
 	RM_FileHandle  *col_Handle;
 	RC rc;
-	RM_FileScan *FileScan;
-	RM_Record *col_rec;
+	RM_FileScan *FileScan = NULL;
+	RM_Record *col_rec = NULL;
 
 	col_Handle = (RM_FileHandle *)malloc(sizeof(RM_FileHandle));
 	col_Handle->bOpen = false;
