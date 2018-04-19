@@ -116,33 +116,33 @@ END
 
 IDR_MAINFRAME MENU PRELOAD DISCARDABLE 
 BEGIN
-    POPUP "文件(&F)"
+    POPUP "File(&F)"
     BEGIN
-        MENUITEM "新建(&N)\tCtrl+N",            ID_FILE_NEW
-        MENUITEM "打开(&O)...\tCtrl+O",         ID_FILE_OPEN
-        MENUITEM "保存(&S)\tCtrl+S",            ID_FILE_SAVE
-        MENUITEM "另存为(&A)...",               ID_FILE_SAVE_AS
+        MENUITEM "New(&N)\tCtrl+N",            ID_FILE_NEW
+        MENUITEM "Open(&O)...\tCtrl+O",         ID_FILE_OPEN
+        MENUITEM "Save(&S)\tCtrl+S",            ID_FILE_SAVE
+        MENUITEM "Save as(&A)...",               ID_FILE_SAVE_AS
         MENUITEM SEPARATOR
-        MENUITEM "最近文件",                    ID_FILE_MRU_FILE1, GRAYED
+        MENUITEM "Recent Files",                    ID_FILE_MRU_FILE1, GRAYED
         MENUITEM SEPARATOR
-        MENUITEM "退出(&X)",                    ID_APP_EXIT
+        MENUITEM "Exit(&X)",                    ID_APP_EXIT
     END
-    POPUP "编辑(&E)"
+    POPUP "Edit(&E)"
     BEGIN
-        MENUITEM "撤消(&U)\tCtrl+Z",            ID_EDIT_UNDO
+        MENUITEM "Undo(&U)\tCtrl+Z",            ID_EDIT_UNDO
         MENUITEM SEPARATOR
-        MENUITEM "剪切(&T)\tCtrl+X",            ID_EDIT_CUT
-        MENUITEM "复制(&C)\tCtrl+C",            ID_EDIT_COPY
-        MENUITEM "粘贴(&P)\tCtrl+V",            ID_EDIT_PASTE
+        MENUITEM "Cut(&T)\tCtrl+X",            ID_EDIT_CUT
+        MENUITEM "Copy(&C)\tCtrl+C",            ID_EDIT_COPY
+        MENUITEM "Paste(&P)\tCtrl+V",            ID_EDIT_PASTE
     END
-    POPUP "查看(&V)"
+    POPUP "View(&V)"
     BEGIN
-        MENUITEM "工具栏(&T)",                  ID_VIEW_TOOLBAR
-        MENUITEM "状态栏(&S)",                  ID_VIEW_STATUS_BAR
+        MENUITEM "Toolbar(&T)",                  ID_VIEW_TOOLBAR
+        MENUITEM "Status Bar(&S)",                  ID_VIEW_STATUS_BAR
     END
-    POPUP "帮助(&H)"
+    POPUP "Help(&H)"
     BEGIN
-        MENUITEM "关于 HustBase(&A)...",        ID_APP_ABOUT
+        MENUITEM "About HustBase(&A)...",        ID_APP_ABOUT
     END
 END
 
@@ -377,9 +377,9 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     ID_RUN                  "Run the SQL sentence"
-    ID_OPENDB               "打开数据库"
-    ID_CREATEDB             "创建数据库"
-    ID_DROPDB               "删除数据库"
+    ID_OPENDB               "Open Database"
+    ID_CREATEDB             "Create Database"
+    ID_DROPDB               "Delete Database"
 END
 
 #endif    // Chinese (中国) resources
