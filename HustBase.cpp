@@ -179,7 +179,7 @@ void CHustBaseApp::OnCreateDB()
 	ZeroMemory(&bi, sizeof(BROWSEINFO));//不存在这句就会出错
 	bi.hwndOwner = GetForegroundWindow();//父窗口	
 	bi.pidlRoot = lpDlist;
-	bi.lpszTitle = "另存为"; bi.pszDisplayName = szPath;
+	bi.lpszTitle = "Save as ..."; bi.pszDisplayName = szPath;
 	bi.ulFlags = 0x0040;//通过对话框的“新建文件夹“输入文件夹名称
 
 	lpDlist = SHBrowseForFolder(&bi);
@@ -258,7 +258,7 @@ void CHustBaseApp::OnDropDb()
 	ZeroMemory(&bi, sizeof(BROWSEINFO));//不存在这句就会出错
 	bi.hwndOwner = GetForegroundWindow();//父窗口	
 	bi.pidlRoot = lpDlist;
-	bi.lpszTitle = "删除数据库";
+	bi.lpszTitle = "Delete Database";
 	bi.pszDisplayName = szPath;
 
 	lpDlist = SHBrowseForFolder(&bi);

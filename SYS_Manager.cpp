@@ -86,6 +86,7 @@ void ExecuteAndMessage(char *sql, CEditArea* editArea, CHustBaseDoc* pDoc)
 		Destory_Result(&res);
 		return;
 	}
+
 	RC rc = execute(sql,pDoc);
 	int row_num = 0;
 	char **messages;
@@ -93,21 +94,21 @@ void ExecuteAndMessage(char *sql, CEditArea* editArea, CHustBaseDoc* pDoc)
 	case SUCCESS:
 		row_num = 1;
 		messages = new char*[row_num];
-		messages[0] = "操作成功";
+		messages[0] = "Successful Execution!";
 		editArea->ShowMessage(row_num, messages);
 		delete[] messages;
 		break;
 	case SQL_SYNTAX:
 		row_num = 1;
 		messages = new char*[row_num];
-		messages[0] = "有语法错误";
+		messages[0] = "Syntax Error!";
 		editArea->ShowMessage(row_num, messages);
 		delete[] messages;
 		break;
 	default:
 		row_num = 1;
 		messages = new char*[row_num];
-		messages[0] = "功能未实现";
+		messages[0] = "Function Not Implemented!";
 		editArea->ShowMessage(row_num, messages);
 		delete[] messages;
 		break;
@@ -176,7 +177,7 @@ RC DropDB(char *dbname)
 {
 	myDeleteDirectory(dbname);
 	if (RemoveDirectory(dbname))
-		AfxMessageBox("删除数据库文件成功！");//删除该数据库文件夹,但该函数只能删除空文件夹
+		AfxMessageBox("Delete Database Successfully！");//删除该数据库文件夹,但该函数只能删除空文件夹
 	return SUCCESS;
 }
 
@@ -203,7 +204,7 @@ RC execute(char * sql, CHustBaseDoc* pDoc) {
 
 	if (rc == SUCCESS)
 	{
-		int i = 0;
+		//int i = 0;
 		switch (sql_str->flag)
 		{
 			//case 1:
@@ -243,6 +244,7 @@ RC execute(char * sql, CHustBaseDoc* pDoc) {
 
 		case 7:
 			//判断SQL语句为createIndex语句
+			//CreateIndex(sql_str->sstr.crei.indexName, AttrType attrType, int attrLength);
 			break;
 
 		case 8:
