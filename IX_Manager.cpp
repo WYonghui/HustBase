@@ -5,6 +5,12 @@
 int threshold;
 
 //索引文件的创建
+/*
+* fileName: 索引文件名
+* attrType: 被索引属性的类型
+* attrLength: 被索引属性的长度
+*/
+//RC CreateIndex(const char * fileName, AttrType attrType, int attrLength)
 RC CreateIndex(char * fileName, AttrType attrType, int attrLength)
 {
 	CreateFile(fileName);  //创建索引文件
@@ -51,7 +57,10 @@ RC OpenIndex(char *fileName, IX_IndexHandle *indexHandle)
 {
 	//打开索引文件
 	PF_FileHandle fileHandle;
-	OpenFile(fileName, &fileHandle);
+	RC rc;
+	if ((rc = OpenFile(fileName, &fileHandle)) != SUCCESS) {
+		return rc;
+	}
 
 	PF_PageHandle *pageHandle = NULL;
 	GetThisPage(&fileHandle, 1, pageHandle);   //获取第一页

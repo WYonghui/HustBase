@@ -2,6 +2,12 @@
 #include "RM_Manager.h"
 #include "str.h"
 
+/*
+* rmFileScan: 扫描文件句柄
+* fileHandle: 文件句柄
+* conNum: 扫描条件个数
+* conditions: 扫描条件数组
+*/
 RC OpenScan(RM_FileScan *rmFileScan,RM_FileHandle *fileHandle,int conNum,Con *conditions)//初始化扫描
 {
 	//初始化文件扫描结构

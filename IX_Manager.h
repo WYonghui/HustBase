@@ -38,12 +38,12 @@ typedef struct{
 	int  ridIx;		//扫描即将处理的索引项编号
 }IX_IndexScan;
 
-RC CreateIndex(const char * fileName,AttrType attrType,int attrLength);
-RC OpenIndex(const char *fileName,IX_IndexHandle *indexHandle);
+RC CreateIndex(char * fileName,AttrType attrType,int attrLength);
+RC OpenIndex(char *fileName,IX_IndexHandle *indexHandle);
 RC CloseIndex(IX_IndexHandle *indexHandle);
 
-RC InsertEntry(IX_IndexHandle *indexHandle,void *pData,const RID * rid);
-RC DeleteEntry(IX_IndexHandle *indexHandle,void *pData,const RID * rid);
+RC InsertEntry(IX_IndexHandle *indexHandle, void *pData, RID * rid);
+RC DeleteEntry(IX_IndexHandle *indexHandle,void *pData, RID * rid);
 RC OpenIndexScan(IX_IndexScan *indexScan,IX_IndexHandle *indexHandle,CompOp compOp,char *value);
 RC IX_GetNextEntry(IX_IndexScan *indexScan,RID * rid);
 RC CloseIndexScan(IX_IndexScan *indexScan);

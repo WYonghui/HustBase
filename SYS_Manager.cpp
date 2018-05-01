@@ -228,7 +228,7 @@ RC execute(char * sql, CHustBaseDoc* pDoc) {
 			
 		case 5:
 			//判断SQL语句为createTable语句
-			CreateTable(sql_str->sstr.cret.relName, sql_str->sstr.cret.attrCount, sql_str->sstr.cret.attributes);
+			//CreateTable(sql_str->sstr.cret.relName, sql_str->sstr.cret.attrCount, sql_str->sstr.cret.attributes);
 			pDoc->m_pTreeView->PopulateTree(); //更新视图
 			//pDoc->m_pListView->displayTabInfo(sql_str->sstr.cret.relName);//右侧刷新表名
 
@@ -244,11 +244,12 @@ RC execute(char * sql, CHustBaseDoc* pDoc) {
 
 		case 7:
 			//判断SQL语句为createIndex语句
-			//CreateIndex(sql_str->sstr.crei.indexName, AttrType attrType, int attrLength);
+			CreateIndex(sql_str->sstr.crei.indexName, sql_str->sstr.crei.relName, sql_str->sstr.crei.attrName);
 			break;
 
 		case 8:
 			//判断SQL语句为dropIndex语句
+			DropIndex(sql_str->sstr.crei.indexName);
 			break;
 
 		case 9:
@@ -427,12 +428,201 @@ RC DropTable(char *relName)
 创建索引的工作包括：①创建并打开索引文件；②逐个扫描被索引的记录，并向索引文件中插入索引项；③关闭索引*/
 RC CreateIndex(char *indexName, char *relName, char *attrName)
 {
+
+	//修改属性信息，设置索引字段为存在索引
+	RC rc;
+	RM_FileHandle *colHandle;
+	RM_FileScan *fileScan = NULL;
+	RM_Record *colRec = NULL;
+
+	colHandle = (RM_FileHandle *)malloc(sizeof(RM_FileHandle));
+	colHandle->bOpen = false;
+	fileScan = (RM_FileScan *)malloc(sizeof(RM_FileScan));
+	fileScan->bOpen = false;
+
+	
+	//打开系统列文件
+	rc = RM_OpenFile("SYSCOLUMNS", colHandle);
+	if (rc != SUCCESS)
+	{
+		return rc;
+	}
+
+	//设置扫描条件
+	Con *conditions = NULL;
+	conditions = (Con *)malloc(sizeof(Con) * 2);
+	(*conditions).attrType = chars;
+	(*conditions).compOp = EQual;
+	(*conditions).bLhsIsAttr = 1;
+	(*conditions).LattrLength = 21;
+	(*conditions).LattrOffset = 0;
+	(*conditions).bRhsIsAttr = 0;
+	(*conditions).Rvalue = relName;
+	
+	(conditions + 1)->attrType = chars;
+	(conditions + 1)->compOp = EQual;
+	(conditions + 1)->bLhsIsAttr = 1;
+	(conditions + 1)->LattrLength = 21;
+	(conditions + 1)->LattrOffset = 21;
+	(conditions + 1)->bRhsIsAttr = 0;
+	(conditions + 1)->Rvalue = attrName;
+
+	OpenScan(fileScan, colHandle, 2, conditions);
+
+	colRec = (RM_Record *)malloc(sizeof(RM_Record));
+	rc = GetNextRec(fileScan, colRec);
+	if (!rc)
+	{
+		return rc;
+	}
+
+	if (*(colRec->pData + 42 + 3 * sizeof(int)) != '0')
+	{
+		return FAIL;
+	}
+
+	*(colRec->pData + 42 + 3 * sizeof(int)) = '1';   //设置索引标识为1
+	memset(colRec->pData + 42 + 3 * sizeof(int) + sizeof(char), '\0', 21);
+	memcpy(colRec->pData + 42 + 3 * sizeof(int) + sizeof(char), indexName, sizeof(indexName));
+
+	//更新系统列文件
+	UpdateRec(colHandle, colRec);
+
+	//关闭扫描及系统列文件
+	CloseScan(fileScan); free(fileScan);
+	RM_CloseFile(colHandle); free(colHandle);
+	free(conditions);
+
+
+	//创建并打开索引文件
+	AttrType *attrType = NULL;
+	attrType = (AttrType *)malloc(sizeof(AttrType));
+	memcpy(attrType, colRec->pData + 42, sizeof(int));
+
+	//创建索引文件
+	int length;
+	memcpy(&length, colRec->pData + 42 + sizeof(int), sizeof(int));
+	CreateIndex(indexName, *attrType, length);
+	free(attrType);
+
+
+	//打开索引文件
+	IX_IndexHandle *indexHandle = NULL;
+
+	indexHandle = (IX_IndexHandle *)malloc(sizeof(IX_IndexHandle));
+	OpenIndex(indexName, indexHandle);
+
+	//向索引文件中加入索引项
+	//首先，打开记录文件,扫描所有记录
+	RM_FileHandle *recFileHandle;
+	RM_FileScan *recFileScan = NULL;
+	RM_Record *rec = NULL;
+	
+	recFileHandle = (RM_FileHandle *)malloc(sizeof(RM_FileHandle));
+	recFileHandle->bOpen = false;
+	recFileScan = (RM_FileScan *)malloc(sizeof(RM_FileScan));
+	recFileScan->bOpen = false;
+	rec = (RM_Record *)malloc(sizeof(RM_Record));
+	rec->bValid = false;
+
+	RM_OpenFile(relName, recFileHandle);
+	OpenScan(recFileScan, recFileHandle, 0, NULL);
+
+	int attrOffset, attrLength;
+	memcpy(&attrOffset, colRec->pData + 42 + 2 * sizeof(int), sizeof(int));
+	memcpy(&attrLength, colRec->pData + 42 + sizeof(int), sizeof(int));
+	free(colRec);
+
+	char *attrValue = NULL;
+	attrValue = (char *)malloc(sizeof(char)*attrLength);
+
+	//将扫描到的记录插入到索引中
+	while (GetNextRec(recFileScan, rec) == SUCCESS)
+	{
+		memcpy(attrValue, rec->pData + attrOffset, attrLength);
+		InsertEntry(indexHandle, attrValue, &rec->rid);
+
+	}
+
+	free(attrValue);
+	CloseScan(recFileScan); free(recFileScan);
+	RM_CloseFile(recFileHandle); free(recFileHandle);
+	CloseIndex(indexHandle); free(indexHandle);
+
 	return SUCCESS;
 }
 
-/*该函数用来删除名为indexName的索引。函数首先检查索引是否存在，如果不存在，则返回一个非零的错误码。否则，销毁该索引*/
+/*该函数用来删除名为indexName的索引。函数首先检查索引是否存在，如果不存在，则返回一个非零的错误码。否则，修改表属性的索引标识，销毁该索引*/
 RC DropIndex(char *indexName)
 {
+	//IX_IndexHandle *indexHandle;
+	//RC rc;
+
+	////判断索引是否存在
+	//indexHandle = (IX_IndexHandle *)malloc(sizeof(IX_IndexHandle));
+	//indexHandle->bOpen = false;
+	//if ((rc = OpenIndex(indexName, indexHandle)) != SUCCESS)
+	//{
+	//	return rc;
+	//}
+	//CloseIndex(indexHandle); free(indexHandle);
+
+	////从表属性中清除索引标识
+	//RM_FileHandle *colHandle;
+	//RM_FileScan *fileScan = NULL;
+	//RM_Record *colRec = NULL;
+
+	//colHandle = (RM_FileHandle *)malloc(sizeof(RM_FileHandle));
+	//colHandle->bOpen = false;
+	//fileScan = (RM_FileScan *)malloc(sizeof(RM_FileScan));
+	//fileScan->bOpen = false;
+
+	////打开系统列文件
+	//rc = RM_OpenFile("SYSCOLUMNS", colHandle);
+	//if (rc != SUCCESS)
+	//{
+	//	return rc;
+	//}
+
+	////设置扫描条件
+	//Con *conditions = NULL;
+	//conditions = (Con *)malloc(sizeof(Con) * 2);
+	//(*conditions).attrType = chars;
+	//(*conditions).compOp = EQual;
+	//(*conditions).bLhsIsAttr = 1;
+	//(*conditions).LattrLength = 21;
+	//(*conditions).LattrOffset = 42 + 3 * sizeof(int) + sizeof(char);
+	//(*conditions).bRhsIsAttr = 0;
+	//(*conditions).Rvalue = indexName;
+
+	//(conditions + 1)->attrType = chars;
+	//(conditions + 1)->compOp = EQual;
+	//(conditions + 1)->bLhsIsAttr = 1;
+	//(conditions + 1)->LattrLength = 1;
+	//(conditions + 1)->LattrOffset = 42 + 3 * sizeof(int);
+	//(conditions + 1)->bRhsIsAttr = 0;
+	//(conditions + 1)->Rvalue = "1";
+
+	//OpenScan(fileScan, colHandle, 2, conditions);
+
+	//colRec = (RM_Record *)malloc(sizeof(RM_Record));
+	//rc = GetNextRec(fileScan, colRec);
+
+	//if (rc) {
+	//	*(colRec->pData + 42 + 3 * sizeof(int)) = '0';   //设置索引标识为0
+	//	memset(colRec->pData + 42 + 3 * sizeof(int) + sizeof(char), '\0', 21);
+	//}
+
+	////更新系统列文件
+	//UpdateRec(colHandle, colRec);
+
+	////关闭扫描及系统列文件
+	//CloseScan(fileScan); free(fileScan);
+	//RM_CloseFile(colHandle); free(colHandle);
+	//free(conditions);
+
+	//DeleteFile((LPCTSTR)indexName);//删除数据表文件
+
 	return SUCCESS;
 }
 
