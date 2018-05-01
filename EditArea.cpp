@@ -122,7 +122,7 @@ void CEditArea::OnRunBtn()
 
 	sqlstr *sql_str = NULL;	//定义联合变量和FLAG的结构体对象
 	
-	RC rc;
+	//RC rc;
 
 	CMainFrame* main = (CMainFrame*)AfxGetApp()->m_pMainWnd;
 	CWnd* pPaneShow =(CWnd*)main->m_wmSplitter1.GetPane(0,0);
