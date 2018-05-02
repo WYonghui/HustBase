@@ -16,9 +16,11 @@ RC CreateIndex(char * fileName, AttrType attrType, int attrLength)
 	CreateFile(fileName);  //创建索引文件
 
 	PF_FileHandle *fileHandle = NULL;
+	fileHandle = (PF_FileHandle *)malloc(sizeof(PF_FileHandle));
 	OpenFile(fileName, fileHandle);	//打开索引文件
 
 	PF_PageHandle *firstPageHandle = NULL;
+	firstPageHandle = (PF_PageHandle *)malloc(sizeof(PF_PageHandle));
 	AllocatePage(fileHandle, firstPageHandle);		//分配索引文件的第一个页面
 	PageNum pageNum;
 	GetPageNum(firstPageHandle, &pageNum);
@@ -47,8 +49,14 @@ RC CreateIndex(char * fileName, AttrType attrType, int attrLength)
 	index_NodeControl.parent = 0;
 	memcpy(pData + sizeof(IX_FileHeader), &index_NodeControl, sizeof(IX_Node));
 
+	MarkDirty(firstPageHandle);
+
+	UnpinPage(firstPageHandle);
+
 	//关闭索引文件
 	CloseFile(fileHandle);
+	free(firstPageHandle);
+	free(fileHandle);
 	return SUCCESS;
 }
 
@@ -63,6 +71,7 @@ RC OpenIndex(char *fileName, IX_IndexHandle *indexHandle)
 	}
 
 	PF_PageHandle *pageHandle = NULL;
+	pageHandle = (PF_PageHandle *)malloc(sizeof(PF_PageHandle));
 	GetThisPage(&fileHandle, 1, pageHandle);   //获取第一页
 
 	char *pData;
@@ -74,6 +83,7 @@ RC OpenIndex(char *fileName, IX_IndexHandle *indexHandle)
 	indexHandle->bOpen = true;
 	indexHandle->fileHandle = fileHandle;
 	indexHandle->fileHeader = fileHeader;
+	free(pageHandle);
 	return SUCCESS;
 }
 
@@ -99,6 +109,8 @@ RC InsertEntry(IX_IndexHandle *indexHandle, void *pData, RID * rid)
 	int attrLength = fileHeader.attrLength;
 
 	//获取根节点页面
+	pageHandle = (PF_PageHandle *)malloc(sizeof(PF_PageHandle));
+	pageHandle->bOpen = false;
 	GetThisPage(&fileHandle, fileHeader.rootPage, pageHandle);
 
 	//获取根节点页面的数据区
@@ -134,6 +146,8 @@ RC InsertEntry(IX_IndexHandle *indexHandle, void *pData, RID * rid)
 
 		//新叶子节点页面
 		PF_PageHandle *newLeafPageHandle = NULL;
+		newLeafPageHandle = (PF_PageHandle *)malloc(sizeof(PF_PageHandle));
+		newLeafPageHandle->bOpen = false;
 		AllocatePage(&fileHandle, newLeafPageHandle);
 		PageNum newLeafPage;
 		GetPageNum(newLeafPageHandle, &newLeafPage);
@@ -145,6 +159,8 @@ RC InsertEntry(IX_IndexHandle *indexHandle, void *pData, RID * rid)
 		{
 			//生成新的根页面
 			PF_PageHandle *newRootPageHandle = NULL;
+			newRootPageHandle = (PF_PageHandle *)malloc(sizeof(PF_PageHandle));
+			newRootPageHandle->bOpen = false;
 			AllocatePage(&fileHandle, newRootPageHandle);
 			PageNum newRootPage;
 			GetPageNum(newRootPageHandle, &newRootPage);
@@ -167,6 +183,7 @@ RC InsertEntry(IX_IndexHandle *indexHandle, void *pData, RID * rid)
 			insertKeyAndRidToPage(newRootPageHandle, order, fileHeader.attrType, fileHeader.attrLength, tempData, &tempRid, true);  //向新的根节点插入子节点的关键字和指针
 
 			indexHandle->fileHeader.rootPage = newRootPage;		//修改索引控制信息中的根节点页面
+			free(newRootPageHandle);
 		}
 		else		//说明当前分裂的节点不是根节点
 		{
@@ -188,7 +205,10 @@ RC InsertEntry(IX_IndexHandle *indexHandle, void *pData, RID * rid)
 			GetData(pageHandle, &pageData);   //令pageData指向父节点的数据区
 			index_NodeControlInfo = (IX_Node*)(pageData + sizeof(IX_FileHeader));   //父节点的节点控制信息
 		}
+		free(newLeafPageHandle);
 	}
+
+	free(pageHandle);
 
 	return SUCCESS;
 }
